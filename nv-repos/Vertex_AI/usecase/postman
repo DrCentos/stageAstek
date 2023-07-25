@@ -1,0 +1,7 @@
+https://europe-west1-aiplatform.googleapis.com/v1/projects/glossy-precinct-371813/locations/europe-west1/endpoints/2419119095153688576:predict
+
+{
+    "instances": [4, 5, 6]
+}
+
+bearer token : gcloud auth print-access-token

@@ -1,0 +1,7 @@
+README.md
+setup.py
+nvresize.egg-info/PKG-INFO
+nvresize.egg-info/SOURCES.txt
+nvresize.egg-info/dependency_links.txt
+nvresize.egg-info/requires.txt
+nvresize.egg-info/top_level.txt

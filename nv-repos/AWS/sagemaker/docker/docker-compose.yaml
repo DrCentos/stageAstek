@@ -1,0 +1,15 @@
+version: '3.1'
+
+services:
+  train:
+    image: 778331702232.dkr.ecr.eu-west-3.amazonaws.com/nv-train-sagemaker:latest
+    build: ./train
+    volumes:
+      - ./ml:/opt/ml
+  pred:
+    image: 778331702232.dkr.ecr.eu-west-3.amazonaws.com/nv-predict-sagemaker:latest
+    build: ./pred
+    volumes:
+      - ./ml:/opt/ml
+    ports:
+      - 8080:8080

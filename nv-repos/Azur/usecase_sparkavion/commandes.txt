@@ -1,0 +1,7 @@
+az hdinsight script-action execute --cluster-name nva-hdi-cluster --name code.py --script-uri https://nvastockage.blob.core.windows.net/nvabucket/code.py --resource-group mlops --roles headnode workernode
+az hdinsight show --resource-group mlops --name nva-hdi-cluster
+
+
+ ssh
+ wget https://nvastockage.blob.core.windows.net/nvabucket/test.py
+ spark-submit --master yarn --deploy-mode cluster test.py

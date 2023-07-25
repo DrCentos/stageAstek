@@ -1,0 +1,63 @@
+liens : 
+
+https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-managed-notebooks-security-groups.html
+
+
+commande pour run le code :
+aws emr add-steps --cluster-id j-ALYFQ6ETFJMZ --steps Type=Spark,Name="My Spark Job",ActionOnFailure=CONTINUE,Args=["--class","main","--deploy-mode","cluster","--master","yarn","s3://nvabucket/nvnote.py]
+
+cancel le code d'avant
+aws emr cancel-steps --cluster-id j-NGWZVVVWX761 --step-ids s-2BKW68O1ASXZV
+
+https://thecodinginterface.com/blog/create-aws-emr-with-aws-cli/
+aws ec2 create-key-pair --key-name emr-keypair --query 'KeyMaterial' --output text > emr-keypair.pem
+
+aws s3api put-object --bucket nvabucket --key logs/
+aws s3api put-object --bucket nvabucket --key inputs/
+aws s3api put-object --bucket nvabucket --key outputs/
+aws s3api put-object --bucket nvabucket --key scripts/
+
+
+set MY_IP=128.78.34.178
+set SUBNET_ID=subnet-010fb6db5f6c2edd4
+set MY_VPC=vpc-0160516d284b4f16f
+
+
+aws ec2 create-security-group --group-name ssh-my-ip  --description "For SSHing from my IP" --vpc-id %MY_VPC%
+
+set MY_SG=sg-0f47f1e19d53a7c3d
+
+aws ec2 authorize-security-group-ingress --group-id sg-0f47f1e19d53a7c3d   --protocol tcp --port 22 --cidr 128.78.34.178/32
+
+{
+    "Return": true,
+    "SecurityGroupRules": [
+        {
+            "SecurityGroupRuleId": "sgr-09236d3baeda54ffa",
+            "GroupId": "sg-0f47f1e19d53a7c3d",
+            "GroupOwnerId": "778331702232",
+            "IsEgress": false,
+            "IpProtocol": "tcp",
+            "FromPort": 22,
+            "ToPort": 22,
+            "CidrIpv4": "128.78.34.178/32"
+        }
+    ]
+}
+
+aws emr create-default-roles 
+
+
+aws emr create-cluster --name nv-cluster --applications Name=Spark Name=Hive  --release-label emr-5.33.0 --use-default-roles   --instance-count 3 --instance-type m5.xlarge   --ebs-root-volume-size 12   --log-uri s3://nvabucket/logs   --ec2-attributes KeyName=emr-keypair,AdditionalMasterSecurityGroups=sg-0f47f1e19d53a7c3d, SubnetId=subnet-010fb6db5f6c2edd4   --no-auto-terminate
+
+
+aws emr create-cluster --name tci-cluster --applications Name=Spark Name=Hive Name=Hadoop --release-label emr-5.33.0 --use-default-roles --instance-count 3 --instance-type m5.xlarge --ebs-root-volume-size 12 --log-uri s3://nvabucket/logs --ec2-attributes KeyName=emr-keypair,AdditionalMasterSecurityGroups=sg-0f47f1e19d53a7c3d,SubnetId=subnet-010fb6db5f6c2edd4 --no-auto-terminate
+
+{
+    "ClusterId": "j-2Q92ZFCI5Z7SK",
+    "ClusterArn": "arn:aws:elasticmapreduce:eu-west-3:778331702232:cluster/j-2Q92ZFCI5Z7SK"
+}v
+
+
+
+

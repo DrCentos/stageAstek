@@ -1,0 +1,144 @@
+Resources:
+  Environment:
+    Variables:
+      DB_HOST: !GetAtt RDSInstance.Endpoint.Address
+      DB_USER: admin
+      DB_PASSWORD: admin123
+      DB_DATABASE: mydb
+      S3_BUCKET: bucketnicov
+
+
+
+  MyBucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: bucketnicov
+
+  RDSInstance:
+    Type: 'AWS::RDS::DBInstance'
+    DeletionPolicy: Delete
+    Properties:
+      AllocatedStorage: 5
+      DBInstanceIdentifier: rdsnicov
+      Engine: mysql
+      MasterUsername: admin
+      MasterUserPassword: admin123
+      DBInstanceClass: db.t2.micro
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroup
+      DBSubnetGroupName: !Ref MyDBSubnetGroup
+
+  RDSSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable database access
+      VpcId: vpc-0160516d284b4f16f
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0
+
+  MyDBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS instance
+      SubnetIds:
+        - subnet-010fb6db5f6c2edd4 #eu-west-3b
+        - subnet-0256f7ab798780bbe #eu-west-3a
+
+  WaitConditionHandle:
+    Type: AWS::CloudFormation::WaitConditionHandle
+
+  WaitCondition:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn: RDSInstance
+    Properties:
+      Handle: !Ref WaitConditionHandle
+      Timeout: '600'
+
+  MyLambdaFunction:
+      Type: 'AWS::Lambda::Function'
+      Properties:
+        Handler: index.handler
+        Role: !GetAtt LambdaExecutionRole.Arn
+        Runtime: python3.8
+        Code:
+          ZipFile: |
+            import json
+            import boto3
+            import os
+            import pymysql
+  
+            def handler(event, context):
+                data = [
+                    {"CustID": 1054, "Name": "Richard Roe"},
+                    {"CustID": 121, "Name": "selen Roe"},
+                    {"CustID": 545, "Name": "alex perry"},
+                    {"CustID": 234, "Name": "louis ford"}
+                ]
+  
+                conn = pymysql.connect(host=os.environ['DB_HOST'], user=os.environ['DB_USER'],
+                                        password=os.environ['DB_PASSWORD'], db=os.environ['DB_DATABASE'])
+                cursor = conn.cursor()
+  
+                for row in data:
+                    try:
+                        cursor.execute("INSERT INTO Customers (CustomerID, CustomerName) VALUES (%s, %s)",
+                                        (row['CustID'], row['Name']))
+                    except Exception as e:
+                        print(f"Error: {str(e)}")
+  
+                conn.commit()
+                cursor.close()
+                conn.close()
+  
+            s3 = boto3.resource('s3')
+            bucket = s3.Bucket(os.environ['S3_BUCKET'])
+            bucket.put_object(Body=str(data), Key='customers.json')
+
+        Environment:
+          Variables:
+            DB_HOST: !GetAtt RDSInstance.Endpoint.Address
+            DB_USER: admin
+            DB_PASSWORD: admin123
+            DB_DATABASE: mydb
+            S3_BUCKET: bucketnicov
+
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: lambda-rds
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'rds-db:connect'
+                  - 'rds-data:executeStatement'
+                Resource: '*'
+        - PolicyName: lambda-s3
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:PutObject'
+                  - 's3:GetObject'
+                  - 's3:ListBucket'
+                Resource: '*'
+
+Outputs:
+  RDSAddress:
+    Value: !GetAtt RDSInstance.Endpoint.Address
+  BucketName:
+    Value: !Ref MyBucket

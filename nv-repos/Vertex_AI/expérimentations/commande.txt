@@ -1,0 +1,14 @@
+gsutil -m cp -r  data.csv gs://nvallot_bucket
+mkdir bitcoin
+cd bitcoin
+mkdir trainer
+touch trainer/task.py
+touch Dockerfile
+
+#create repository 
+
+gcloud auth configure-docker europe-west1-docker.pkg.dev
+
+docker build ./ -t europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/image:latest
+
+docker push europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/image:latest

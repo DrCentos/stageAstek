@@ -1,0 +1,119 @@
+# s3 bucket
+# s3 bucket policy
+
+Parameters:
+  MyBucketName:
+    Type: String
+    Description : nvabucketformation
+    Default: nvabucketformation
+
+  MyLambdaName:
+    Type: String
+    Description: nvalambdaformation
+    Default: nvalambdaformation
+
+Resources :
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName:
+        Ref: MyBucketName
+
+  SampleBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: MyS3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref MyS3Bucket
+                - /*
+            Principal: '*'
+
+  MyLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      BucketName:
+        Ref: MyLambdaName
+
+  Properties:
+    Architectures:
+      - String
+    Code:
+      ZipFile: |
+        import boto3
+        import json
+        
+        def lambda_handler(event, context):
+            client = client_obj()
+            associated = associated_list(client)
+            response = client.list_resolver_query_log_configs(
+                MaxResults=1,
+            )
+            config = response['ResolverQueryLogConfigs'][0]['Id']
+            ec2 = boto3.client('ec2')
+            vpc = ec2.describe_vpcs()
+            vpcs = vpc['Vpcs']
+        
+            for v in vpcs:
+                if v['VpcId'] not in associated:
+                    client.associate_resolver_query_log_config(
+                        ResolverQueryLogConfigId= f"{config}",
+                        ResourceId=f"{v['VpcId']}"
+                    )
+                else:
+                    print(f"{v['VpcId']} is already linked.")
+        
+        def client_obj():
+            client = boto3.client('route53resolver')
+            return client
+        
+        def associated_list(client_object):
+            associated = list()
+            assoc = client_object.list_resolver_query_log_config_associations()
+            for element in assoc['ResolverQueryLogConfigAssociations']:
+                associated.append(element['ResourceId'])
+            return associated
+    CodeSigningConfigArn: String
+    DeadLetterConfig:
+      DeadLetterConfig
+    Description: String
+    Environment:
+      Environment
+    EphemeralStorage:
+      EphemeralStorage
+    FileSystemConfigs:
+      - FileSystemConfig
+    FunctionName: String
+    Handler: String
+    ImageConfig:
+      ImageConfig
+    KmsKeyArn: String
+    Layers:
+      - String
+    MemorySize: Integer
+    PackageType: String
+    ReservedConcurrentExecutions: Integer
+    Role: String
+    Runtime: String
+    RuntimeManagementConfig:
+      RuntimeManagementConfig
+    SnapStart:
+      SnapStart
+    Tags:
+      - Tag
+    Timeout: Integer
+    TracingConfig:
+      TracingConfig
+    VpcConfig:
+      VpcConfig
+
+

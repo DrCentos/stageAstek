@@ -1,0 +1,14 @@
+https://www.youtube.com/watch?v=EOBJYnavwfw
+
+
+commande :
+source env_variable.sh
+ou
+set PROJECT_ID=$(gcloud config list project --format "value(core.project)") .......
+
+docker build -f Dockerfile -t ${IMAGE_URI} ./
+
+docker run ${IMAGE_URI} --data_gcs_path=${DATA}
+
+gcloud auth configure-docker europe-west1-docker.pkg.dev
+docker push ${IMAGE_URI}

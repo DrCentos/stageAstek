@@ -1,0 +1,26 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvtrain:latest', './projet_cancer/usecase/trainer' ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'push', 'europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvtrain:latest' ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvpred:latest', './projet_cancer/usecase/predict' ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'push', 'europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvpred:latest' ]
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'bash'
+  args: ['-c', 'gcloud config set app/cloud_build_timeout 1600 && gcloud app deploy ./projet_cancer/usecase/App/app.yaml']
+serviceAccount: 'nvallot-service@glossy-precinct-371813.iam.gserviceaccount.com'
+timeout: '1600s'
+
+
+images:
+- 'europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvtrain:latest'
+- 'europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvpred:latest'
+
+options:
+  logging: 'CLOUD_LOGGING_ONLY'
+
+
+
+

@@ -1,0 +1,38 @@
+
+steps:
+  - name: python
+    entrypoint: python
+    args: [ "-m", "pip", "install", "--upgrade","pip" ]
+  - name: python
+    entrypoint: python
+    args: [ "-m", "pip", "install", "wheel" ]
+  - name: python
+    entrypoint: python
+    args: [ "-m", "pip", "install", "pyarrow" ]
+  - name: python
+    entrypoint: python
+    args: [ "-m", "pip", "install", "apache-beam[gcp]" ]
+  - name: python
+    entrypoint: python
+    args: [ "-m", "pip", "install", "-r", "./requirements.txt" ]
+  - name: python
+    entrypoint: python
+    args: [
+      "main.py",
+      "--region", "europe-west6",
+        "--input", "gs://nv-bucket-uscase/nico.csv",
+        "--output", "gs://nv-bucket-maven/result/outputs.json",
+        "--runner", "DataflowRunner",
+        "--project", "glossy-precinct-371813",
+        "--temp_location", "gs://nv-bucket-maven/tmp/",
+        "--host", "34.163.36.196",
+        "--port", "3306",
+        "--database", "nicolasvallotbd",
+        "--table", "usecasenv",
+        "--user", "nicolas-vallot",
+        "--password", "nicolasvallot",
+        "--batch_size", "100",
+        "--naf", "gs://nv-bucket-uscase/nafdata.csv",
+        "--tablebq", "glossy-precinct-371813.nvconsommationnaf.nvconsommationnaf",
+        "--extra_package","./beam_mysql_connector-1.8.5-py3-none-any.whl"
+    ]

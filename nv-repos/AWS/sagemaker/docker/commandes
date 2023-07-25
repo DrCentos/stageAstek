@@ -1,0 +1,35 @@
+!python deploy.py ct \
+    --name nva-job \
+    --image 778331702232.dkr.ecr.eu-west-3.amazonaws.com/nv-train-sagemaker \
+    --role arn:aws:iam::778331702232:role/nvsagemaker \
+    --outputPath s3://nvabucket/output \
+    --inputPath s3://nvabucket/input/coinbaseUSD.csv
+
+
+python run.py ct    --name nv-job    --image 778331702232.dkr.ecr.eu-west-3.amazonaws.com/nv-train-sagemaker    --role arn:aws:iam::778331702232:role/nvsagemaker    --outputPath s3://nvabucket/output   --inputPath s3://nvabucket/input/coinbaseUSD.csv
+
+
+!python deploy.py dm \
+    --name nv-model \
+    --endpointName nv-endpoint9 \
+    --image 778331702232.dkr.ecr.eu-west-3.amazonaws.com/nv-pred-sagemaker \
+    --role arn:aws:iam::778331702232:role/nvsagemaker \
+    --modelPath s3://nvabucket/output/nv-job/output/model.tar.gz
+
+!python deploy.py dm  --name nv-model  --endpointName nv-endpoint9  --image 778331702232.dkr.ecr.eu-west-3.amazonaws.com/nv-pred-sagemaker  --role arn:aws:iam::778331702232:role/nvsagemaker  --modelPath s3://nvabucket/output/nv-job/output/model.tar.gz
+
+python run.py gp \
+    --endpointName nv-endpoint \
+    --data "1,2,3"
+
+python run.py gp --endpointName nv-endpoint --data "1,2,3"
+
+aws sagemaker delete-endpoint --endpoint-name nv-endpoint
+
+#commande pour push le predict (faire la meme chose pour le train en se placant dans le rep)
+aws ecr create-repository --repository-name nv-pred-sagemaker
+docker build -t 778331702232.dkr.ecr.eu-west-3.amazonaws.com/nv-pred-sagemaker .
+docker push 778331702232.dkr.ecr.eu-west-3.amazonaws.com/nv-pred-sagemaker
+
+
+

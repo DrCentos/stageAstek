@@ -1,0 +1,16 @@
+https://www.bing.com/videos/search?q=sagemaker+custom+predict&&view=detail&mid=70C036497731672BE06E70C036497731672BE06E&&FORM=VRDGAR&ru=%2Fvideos%2Fsearch%3Fq%3Dsagemaker%2Bcustom%2Bpredict%26FORM%3DHDRSC6
+
+https://sagemaker.readthedocs.io/en/stable/frameworks/xgboost/using_xgboost.html
+https://aws.amazon.com/fr/getting-started/hands-on/serve-a-flask-app/
+
+https://www.sicara.fr/blog-technique/amazon-sagemaker-model-training#1jh1b
+
+predict flask :
+https://github.com/aws-samples/amazon-sagemaker-custom-container/blob/master/image_classification/predictor.py
+
+https://sagemaker.readthedocs.io/en/stable/api/inference/model.html
+
+command : aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin 778331702232.dkr.ecr.eu-west-3.amazonaws.com
+
+
+repo uri : 778331702232.dkr.ecr.eu-west-3.amazonaws.com/sagemaker-images-nv

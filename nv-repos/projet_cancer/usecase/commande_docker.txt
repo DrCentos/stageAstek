@@ -1,0 +1,7 @@
+cd trainer
+docker build -t  europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvtrain:latest .
+docker push europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvtrain:latest
+
+cd predict
+docker build -t  europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvpred:latest .
+docker push europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvpred:latest

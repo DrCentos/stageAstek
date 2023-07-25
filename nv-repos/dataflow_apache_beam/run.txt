@@ -1,0 +1,1 @@
+nv-repos>python ./wordcount.py  --region europe-west6  --input gs://nv-bucket-uscase/nico.csv  --output gs://nv-bucket-maven/result/outputs.json   --runner DataflowRunner --project glossy-precinct-371813 --temp_location gs://nv-bucket-maven/tmp/ --setup_file ./setup.py

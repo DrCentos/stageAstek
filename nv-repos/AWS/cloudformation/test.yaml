@@ -1,0 +1,36 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+
+  NvDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet Group for RDS Instance
+      SubnetIds:
+        - 'subnet-010fb6db5f6c2edd4'
+        - 'subnet-01f473cfbb6f597da'
+
+  NvRDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: mysql
+      DBName: nvrds
+      AllocatedStorage: 20
+      DBInstanceIdentifier: nvrds
+      MasterUsername: nicolasvallot
+      MasterUserPassword: nicolasvallot
+      DBInstanceClass: db.t2.micro
+      VPCSecurityGroups:
+        - !Ref NvRDSSecurityGroup
+      DBSubnetGroupName: !Ref NvDBSubnetGroup
+
+  NvRDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable access to RDS
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0
+

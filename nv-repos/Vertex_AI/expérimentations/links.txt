@@ -1,0 +1,15 @@
+https://codelabs.developers.google.com/vertex-automl-tabular#0
+
+https://www.bing.com/videos/search?q=vertex+Ai+kaggle&&view=detail&mid=8790E9203C86E8074FF38790E9203C86E8074FF3&&FORM=VRDGAR&ru=%2Fvideos%2Fsearch%3Fq%3Dvertex%2BAi%2Bkaggle%26FORM%3DHDRSC4
+
+https://www.bing.com/videos/search?&q=vertex+Ai+kaggle&view=detail&mid=BAFF351B00A42D3F5CAABAFF351B00A42D3F5CAA&FORM=VDRVSR&ru=%2Fvideos%2Fsearch%3Fq%3Dvertex%2BAi%2Bkaggle%26FORM%3DHDRSC4&rvsmid=8790E9203C86E8074FF38790E9203C86E8074FF3&ajaxhist=0
+
+https://codelabs.developers.google.com/vertex-p2p-training#3
+
+https://codelabs.developers.google.com/vertex-pipelines-custom-model#3
+
+
+Deploy BiqQuery ML Model on Vertex AI Model Registry and make predictions
+https://github.com/GoogleCloudPlatform/vertex-ai-samples/blob/main/notebooks/official/model_registry/bqml_vertexai_model_registry.ipynb
+
+https://codelabs.developers.google.com/vertex_custom_training_prediction#3

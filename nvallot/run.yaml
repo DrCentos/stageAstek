@@ -1,0 +1,126 @@
+# Python to Linux Web App on Azure
+# Build your Python project and deploy it to Azure as a Linux Web App.
+# Change python version to one thats appropriate for your application.
+# https://docs.microsoft.com/azure/devops/pipelines/languages/python
+
+trigger:
+- master
+
+variables:
+  # Azure Resource Manager connection created during pipeline creation
+  azureServiceConnectionId: 'Azure-ARM-NVallot'
+
+  # Web app name
+  webAppName: 'nv-flask-app'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+  # Environment name
+  environmentName: 'nv-flask-app'
+
+  # Project root folder. Point to the folder containing manage.py file.
+  projectRoot: $(System.DefaultWorkingDirectory)
+
+  # Python version: 3.6
+  pythonVersion: '3.9'
+
+stages:
+- stage: Build
+  displayName: Build stage
+  jobs:
+  - job: BuildJob
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(pythonVersion)'
+      displayName: 'Use Python $(pythonVersion)'
+
+
+    - script: pip install --upgrade pip
+      displayName: 'Upgrade pip'
+      workingDirectory: $(projectRoot)
+
+    - script: pip install pipenv
+      displayName: 'Install pipenv'
+
+    - script: python -m pipenv install --dev
+      displayName: 'Install Python dependencies'
+
+    - script: python -m pipenv run pip freeze > requirements.txt
+      displayName: 'Generate requirements.txt'
+
+    - task: ArchiveFiles@2
+      displayName: 'Archive files'
+      inputs:
+        rootFolderOrFile: '$(projectRoot)'
+        includeRootFolder: false
+        archiveType: zip
+        archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+        replaceExistingArchive: true
+
+    - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+      displayName: 'Upload package'
+      artifact: drop
+
+
+
+
+- stage: Deploy
+  displayName: 'Deploy Web App'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: DeploymentJob
+    pool:
+      vmImage: $(vmImageName)
+    environment: $(environmentName)
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            displayName: 'Use Python version'
+
+          - task: AzureWebApp@1
+            displayName: 'Deploy Azure Web App :  vue-flask-app'
+            inputs:
+              azureSubscription: $(azureServiceConnectionId)
+              appName: $(webAppName)
+              package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+              AdditionalArguments: '--remove-undeclared-files'
+              startUpCommand: 'gunicorn --bind=0.0.0.0 --workers=4 --timeout 600 app:app'
+
+
+- stage: Execution
+  displayName: 'Script Execution'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - job: ExecutionJob
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(pythonVersion)'
+      displayName: 'Use Python version'
+
+    - script: az login
+      displayName: 'az login'
+      workingDirectory: $(projectRoot)
+
+
+    - script: python trainfunc.py
+      displayName: 'Run trainfunc script'
+      workingDirectory: $(projectRoot)
+
+    - script: python runendpoint.py
+      displayName: 'Run runendpoint script'
+      workingDirectory: $(projectRoot)
+      condition: succeeded()

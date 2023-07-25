@@ -1,0 +1,29 @@
+aws emr create-default-roles
+
+aws emr create-cluster \
+    --name "nv-emr-cluster" \
+    --release-label emr-5.36.0 \
+    --log-uri s3://nvabucket/logs \
+    --applications Name=Spark \
+    --ec2-attributes KeyName=emr-cluster \
+    --instance-type m5.xlarge \
+    --instance-count 1 \
+    --use-default-roles
+
+
+    aws emr create-cluster --name "nv-emr-cluster" --release-label emr-5.36.0 --log-uri s3://nvabucket/logs --applications Name=Spark --ec2-attributes KeyName=emr-cluster --instance-type m5.xlarge --instance-count 1 --use-default-roles
+
+aws s3 cp code.py s3://nvabucket/job.py
+
+aws emr add-steps \
+    --cluster-id j-3V4OBYR8PSNHN \
+    --steps Type=Spark,Name="Spark",ActionOnFailure=CONTINUE,Args=[s3://nvabucket/job.py]
+
+    aws emr add-steps --cluster-id j-3V4OBYR8PSNHN --steps Type=Spark,Name="Spark",ActionOnFailure=CONTINUE,Args=[s3://nvabucket/job.py]
+
+
+aws emr terminate-clusters \
+    --cluster-id j-3V4OBYR8PSNHN
+
+
+    aws emr terminate-clusters --cluster-id j-2SRTS8WQR0K1J

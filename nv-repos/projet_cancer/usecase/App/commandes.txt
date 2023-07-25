@@ -1,0 +1,13 @@
+gcloud app deploy
+
+#récupérer url du service nvbuild
+gcloud run services describe nvbuild --platform managed --region europe-west1 --format 'value(status.url)'
+
+# deploy sur cloud run
+gcloud run deploy nvbuild  --source . --platform managed
+ --region europe-west1   --allow-unauthenticated   --project=glossy-precinct-371813  --service-account=nvallot-service@glossy-precinct-371813.iam.gserviceaccount.com
+
+gcloud compute ssh --zone "europe-west1-b" "nvbuild" --project "glossy-precinct-371813"
+
+
+gcloud compute scp --zone "europe-west1-b" --project "glossy-precinct-371813"     --recurse ./web/ nvbuild:

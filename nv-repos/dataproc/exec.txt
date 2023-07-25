@@ -1,0 +1,20 @@
+# Crée cluster
+gcloud dataproc clusters create nv-cluster --region europe-west3 --zone europe-west3-a --single-node --master-machine-type n1-standard-2 --master-boot-disk-size 50 --image-version 2.0-debian10 --project glossy-precinct-371813
+
+# Publier le job pyspark dans bucket
+gsutil cp nv.py  gs://nvallot_bucket/nv.py
+
+# Lancer le job
+gcloud dataproc jobs submit pyspark --cluster=nv-cluster --region=europe-west4 gs://nvallot_bucket/nv.py
+
+# Crée un workflow template
+gcloud dataproc workflow-templates create nv-template --region europe-west4
+
+# Set managed cluster
+gcloud dataproc workflow-templates set-managed-cluster nv-template --region europe-west4 --cluster-name nv
+
+# Create the job
+gcloud dataproc workflow-templates add-job pyspark gs://nvallot_bucket/nv.py --step-id nv-step --workflow-template nv-template --region europe-west4
+
+# Launch job
+gcloud dataproc workflow-templates instantiate nv-template --region europe-west4

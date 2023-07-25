@@ -1,0 +1,7 @@
+google-cloud-storage==1.28.1
+pandas==1.5.3
+gcsfs==0.7.1
+pymssql
+beam_mysql
+beam_mysql-connector-io
+Flask==2.1.0

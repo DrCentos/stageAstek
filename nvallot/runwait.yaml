@@ -1,0 +1,180 @@
+
+pool:
+  vmImage: 'ubuntu-latest'  # Utilisez l'image d'une machine virtuelle Linux
+
+
+variables:
+  azureSubscriptionEndpoint: Azure-ARM-NVallot
+  DockerNamespace: nvregistre.azurecr.io
+  DockerRepository: nvcase
+  WebAppName: nvapp
+
+steps:
+
+- task: AzureRMWebAppDeployment@4
+  displayName: Azure App Service Deploy
+  inputs:
+    appType: webAppContainer
+    ConnectedServiceName: $(azureSubscriptionEndpoint)
+    WebAppName: $(WebAppName)
+    DockerNamespace: $(DockerNamespace)
+    DockerRepository: $(DockerRepository)
+    DockerImageTag: latest
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  trigger:
+    branches:
+      include:
+        - main
+
+  jobs:
+    - job: BuildAndDeploy
+      displayName: "Build and Deploy"
+      pool:
+        vmImage: 'ubuntu-latest'
+
+      steps:
+        - task: UsePythonVersion@0
+          inputs:
+            versionSpec: '3.8'
+            addToPath: true
+
+        - script: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+          workingDirectory: $(System.DefaultWorkingDirectory)
+          displayName: "Install application dependencies"
+
+        - task: ArchiveFiles@2
+          inputs:
+            rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+            includeRootFolder: false
+            archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
+            replaceExistingArchive: true
+          displayName: "Archive app files"
+
+        - task: AzureRmWebAppDeployment@4
+          displayName: 'Deploy to Azure Web App'
+          inputs:
+            ConnectionType: 'AzureRM'
+            azureSubscription: 'Azure-ARM-NVallot'
+            appType: 'webAppLinux'
+            WebAppName: 'nvapp'
+            packageForLinux: '$(Build.ArtifactStagingDirectory)/app.zip'
+            enableCustomDeployment: true
+            deploymentMethod: 'runFromPackage'
+            AdditionalArguments: '--remove-undeclared-files'
+
+
+
+
+
+
+# Python to Linux Web App on Azure
+# Build your Python project and deploy it to Azure as a Linux Web App.
+# Change python version to one thats appropriate for your application.
+# https://learn.microsoft.com/azure/devops/pipelines/languages/python
+
+trigger:
+  - Release-0.1
+
+variables:
+  # Azure Resource Manager connection created during pipeline creation
+  azureServiceConnectionId: 'Azure-ARM-NVallot'
+
+  # Web app name
+  webAppName: 'nvapp'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+  # Environment name
+  environmentName: 'nvenv'
+
+  # Project root folder. Point to the folder containing manage.py file.
+  projectRoot: $(System.DefaultWorkingDirectory)
+
+  # Python version: 3.8
+  pythonVersion: '3.9'
+
+stages:
+  - stage: Build
+    displayName: Build stage
+    jobs:
+      - job: BuildJob
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            displayName: 'Use Python $(pythonVersion)'
+
+          - script: |
+              python -m venv antenv
+              source antenv/bin/activate
+              python -m pip install --upgrade pip
+              pip install setup
+              pip install -r requirements.txt
+            workingDirectory: $(projectRoot)
+            displayName: "Install requirements"
+
+          - task: ArchiveFiles@2
+            displayName: 'Archive files'
+            inputs:
+              rootFolderOrFile: '$(projectRoot)'
+              includeRootFolder: false
+              archiveType: zip
+              archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+              replaceExistingArchive: true
+              exclude: |
+                **/tests/**
+
+          - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+            displayName: 'Upload package'
+            artifact: drop
+
+  - stage: Deploy
+    displayName: 'Deploy Web App'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: DeploymentJob
+        pool:
+          vmImage: $(vmImageName)
+        environment: $(environmentName)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: UsePythonVersion@0
+                  inputs:
+                    versionSpec: '$(pythonVersion)'
+                  displayName: 'Use Python version'
+
+                - task: AzureRmWebAppDeployment@4
+                  displayName: 'Deploy to Azure Web App'
+                  inputs:
+                    ConnectionType: 'AzureRM'
+                    azureSubscription: 'Azure-ARM-NVallot'
+                    appType: 'webAppLinux'
+                    WebAppName: 'nvapp'
+                    package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+                    enableCustomDeployment: true
+                    deploymentMethod: 'runFromPackage'
+                    AdditionalArguments: '--remove-undeclared-files'
+
+
+

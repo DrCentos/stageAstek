@@ -1,0 +1,28 @@
+name: model-env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8.17
+  - numpy=1.21.2
+  - pip=21.2.4
+  - setuptools==68.0.0
+  - wheel==0.40.0
+  - pip:
+    - mlflow
+    - tensorflow
+    - azureml-defaults
+    - azure-ai-ml
+    - azureml-dataprep[pandas,fuse]
+    - azure-storage-blob
+    - azureml-inference-server-http
+    - inference-schema[numpy-support]==1.5.1
+    - xlrd==2.0.1
+    - azureml-core
+    - azureml-mlflow
+    - psutil>=5.8,<5.9
+    - tqdm>=4.59,<4.60
+    - ipykernel~=6.0
+    - matplotlib
+    - joblib
+    - cloudpickle==2.0.0
+    - 'azure-mgmt-machinelearningservices==2.0.0b1'

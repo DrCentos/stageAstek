@@ -1,0 +1,29 @@
+tuto simple pub/sub : https://cloud.google.com/pubsub/docs/publish-receive-messages-console?hl=fr
+explication pub/sub : https://cloud.google.com/pubsub/docs/overview?hl=fr
+
+deployer fonction cloud : https://cloud.google.com/functions/docs/deploy?hl=fr
+déclencheur pub/sub : https://cloud.google.com/functions/docs/calling/pubsub?hl=fr#console
+
+cloud storage node.js : https://console.cloud.google.com/functions/list?q=search&referrer=search&hl=fr&project=glossy-precinct-371813&walkthrough_id=functions--cloud_storage_and_cloud_functions
+Lire et écrire sur Cloud Storage : https://cloud.google.com/appengine/docs/standard/python/googlecloudstorageclient/read-write-to-cloud-storage?hl=fr&_ga=2.100550620.-33040695.1675757344
+Lire un objet en tant que flux : https://cloud.google.com/storage/docs/samples/storage-stream-file-download?hl=fr&_ga=2.21308281.-33040695.1675757344#storage_stream_file_download-python
+
+cloud build :https://console.cloud.google.com/cloud-build/builds?cloudshell=true&hl=fr&project=glossy-precinct-371813
+
+Cloud source repositories :https://cloud.google.com/source-repositories/docs/features?hl=fr
+https://cloud.google.com/source-repositories/docs?hl=fr
+https://cloud.google.com/source-repositories/docs/create-code-repository?hl=fr
+
+cloud build to cloud run https://console.cloud.google.com/cloud-build/builds;region=us-west2?project=glossy-precinct-371813&cloudshell=true&hl=fr
+pb droit avec celui là
+
+cloud repository https://cloud.google.com/source-repositories/docs/create-code-repository?hl=fr
+
+
+
+Clusters – Dataproc – astek-cloudstage-ml… – Google Cloud Console :https://console.cloud.google.com/dataproc/clusters?cloudshell=true&hl=fr&project=glossy-precinct-371813&walkthrough_id=dataproc--dataproc_serverless_quickstart
+
+
+data proc : https://cloud.google.com/vertex-ai/docs/workbench/managed/dataproc?hl=fr
+
+data proc monté carlo avec ssh https://cloud.google.com/architecture/monte-carlo-methods-with-hadoop-spark?hl=fr

@@ -1,0 +1,44 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvtrain:latest', './projet_cancer/usecase/trainer' ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'push', 'europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvtrain:latest' ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvpred:latest', './projet_cancer/usecase/trainer' ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'push', 'europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvpred:latest' ]
+
+#voir pour lancer l'app
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'bash'
+  args: ['-c', 'gcloud config set app/cloud_build_timeout 1600 && gcloud app deploy ./projet_cancer/usecase/App/app.yaml']
+timeout: '1600s'
+
+images:
+- 'europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvtrain:latest'
+- 'europe-west1-docker.pkg.dev/glossy-precinct-371813/nvrep/nvpred:latest'
+
+
+
+# Execute main.py script
+- name: python
+  entrypoint: python
+  args: ["-m", "pip", "install", "--upgrade", "pip"]
+- name: python
+  entrypoint: python
+  args: ["-m", "pip", "install", "google-cloud-aiplatform","google-cloud-storage"]
+
+- name: 'python:3.9'
+  entrypoint: sh
+  args:
+    - -c
+    - |
+      python -m pip install --upgrade pip &&
+      python -m pip install google-cloud google-cloud-aiplatform google-cloud-storage &&
+      python ./projet_cancer/usecase/main.py
+
+
+options:
+  logging: 'CLOUD_LOGGING_ONLY'
+
+

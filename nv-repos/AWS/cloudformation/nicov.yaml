@@ -1,0 +1,176 @@
+#commande : aws cloudformation deploy --template-file mytemplate.yml --stack-name nvstack --parameter-overrides bucketkey=bucketnicov rdskey=rdsnicov --capabilities CAPABILITY_NAMED_IAM
+Resources:
+  MyBucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: bucketnicov
+      #BucketName: !Ref bucketkey  #il faut passer en parametre bucketkey=....
+
+  RDSInstance:
+    Type: 'AWS::RDS::DBInstance'
+    DeletionPolicy: Delete
+    Properties:
+      AllocatedStorage: 5
+      DBInstanceIdentifier: rdsnicov
+      #DBInstanceIdentifier: !Ref rdskey #il faut passer en parametre rdskey=....
+      Engine: mysql
+      MasterUsername: admin
+      MasterUserPassword: admin123
+      DBInstanceClass: db.t2.micro
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroup
+
+
+  RDSSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable database access
+      VpcId: vpc-0160516d284b4f16f
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0
+
+
+  MyDBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS instance
+      SubnetIds:
+        - subnet-010fb6db5f6c2edd4 #eu-west-3b
+        - subnet-0256f7ab798780bbe #eu-west-3a
+
+
+  MyLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    DependsOn: RDSInstance  #on execute la fonction après la creation de la bd
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.8
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          import os
+          import tempfile
+          from os import path
+          import zipfile
+          #import pymysql
+          from io import BytesIO
+          
+          def handler(event, context):
+            
+              bucket_name = "nvabucket"
+              zip_file_name = "pymysql.zip"
+          
+              s3 = boto3.client('s3')
+              zip_object = s3.get_object(Bucket=bucket_name, Key=zip_file_name)
+              
+              # Read the contents of the StreamingBody object into memory
+              zip_data = zip_object['Body'].read()
+              
+              # Create a BytesIO object from the zip data
+              zip_file = BytesIO(zip_data)
+          
+              # Decompress the zip file to the /tmp directory
+              with zipfile.ZipFile(zip_file) as zip_ref:
+                  zip_ref.extractall('/tmp')
+          
+              import sys
+              sys.path.insert(0, '/tmp')
+              import pymysql
+          
+            
+              data = [
+                  {"CustID": 1054, "Name": "Richard Roe"},
+                  {"CustID": 121, "Name": "selen Roe"},
+                  {"CustID": 2, "Name": "Alex Valette"},
+                  {"CustID": 3, "Name": "Nico Vallot"}
+              ]
+          
+              rds = boto3.client('rds')
+              response = rds.describe_db_instances(DBInstanceIdentifier='rdsnicov')
+              rds_endpoint = response['DBInstances'][0]['Endpoint']['Address']
+          
+              connection = pymysql.connect(
+                  host=rds_endpoint,
+                  user='admin',
+                  password= 'admin123',
+                  database='rdsnicov'
+              )
+          
+              with connection.cursor() as cursor:
+                  # Vérifier si la table existe
+                  cursor.execute("SHOW TABLES LIKE 'table'")
+                  result = cursor.fetchone()
+          
+                  # Si la table n'existe pas, la créer
+                  if not result:
+                      cursor.execute("CREATE TABLE `table` (`CustID` INT, `Name` VARCHAR(255))")
+                      connection.commit()
+          
+                  # Insérer les données dans la table
+                  for item in data:
+                      cursor.execute("INSERT INTO `table` (`CustID`, `Name`) VALUES (%s, %s)", (item['CustID'], item['Name']))
+                  connection.commit()
+          
+              connection.close()
+              s3 = boto3.client('s3')
+              s3.put_object(Bucket='bucketnicov', Key='data.json', Body=json.dumps(data))
+              print("endoooo")
+              
+
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: LambdaExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 'arn:aws:logs:*:*:*'
+              - Effect: Allow
+                Action:
+                  - 's3:PutObject'
+                  - 's3:GetObject'
+                  - 's3:ListBucket'
+                Resource:
+                  - !Join ['', ['arn:aws:s3:::', !Ref MyBucket, '/*']]
+                  - !GetAtt MyBucket.Arn
+              - Effect: Allow
+                Action:
+                  - 'rds:DescribeDBInstances'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'ec2:CreateNetworkInterface'
+                  - 'ec2:DescribeNetworkInterfaces'
+                  - 'ec2:DeleteNetworkInterface'
+                Resource: '*'
+
+Outputs:
+  BucketName:
+    Description: Name of the S3 bucket
+    Value: !Ref MyBucket
+
+  RDSInstanceEndpoint:
+    Description: RDS instance endpoint
+    Value: !GetAtt RDSInstance.Endpoint.Address
